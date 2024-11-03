@@ -16,14 +16,17 @@ import Image from 'next/image';
 import { usePathname, useRouter } from 'next/navigation';
 import React from 'react';
 import Modal from '../modal';
-import { PlusCircle } from 'lucide-react';
+import { Menu, PlusCircle } from 'lucide-react';
 import Search from '../search';
 import { MENU_ITEMS } from '@/constants';
 import SidebarItem from './sidebar-item';
 import { getNotifications } from '@/actions/user';
 import WorkspacePlaceholder from './workspace-placeholder';
 import GlobalCard from '../global-card';
-import PaymentButton from '../payment-button';
+import { Button } from '@/components/ui/button';
+import Loader from '../loader';
+import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
+import InfoBar from '../info-bar';
 
 type Props = {
 	activeWorkspaceId: string;
@@ -51,7 +54,7 @@ const Sidebar = ({ activeWorkspaceId }: Props) => {
 		(workspace) => workspace.id === activeWorkspaceId
 	);
 
-	return (
+	const SidebarSection = (
 		<div className='bg-[#111111] flex-none relative p-4 h-full w-[250px] flex flex-col gap-4 items-center overflow-hidden'>
 			<div className='bg-[#111111] p-4 flex gap-2 justify-center items-center mb-4 absolute top-0 left-0 right-0 '>
 				<Image src='/opal-logo.svg' height={40} width={40} alt='logo' />
@@ -143,7 +146,7 @@ const Sidebar = ({ activeWorkspaceId }: Props) => {
 			<nav className='w-full'>
 				<ul className='h-[150px] overflow-auto overflow-x-hidden fade-layer'>
 					{/* Render personal workspace */}
-					{workspace.workspace.length > 0 &&
+					{workspace.workspace.length > 1 &&
 						workspace.workspace.map(
 							(item) =>
 								item.type === 'PERSONAL' && (
@@ -184,9 +187,36 @@ const Sidebar = ({ activeWorkspaceId }: Props) => {
 				<GlobalCard
 					title='Upgrade to Pro'
 					description=' Unlock AI features like transcription, AI summary, and more.'
-					footer={<PaymentButton />}
+					footer={
+						<Button className='text-sm w-full'>
+							<Loader color='#000' state={false}>
+								Upgrade
+							</Loader>
+						</Button>
+					}
 				/>
 			)}
+		</div>
+	);
+
+	return (
+		<div className='full'>
+			{/* INFOBAR  */}
+			<InfoBar />
+			{/* SHEET  */}
+			<div className='md:hidden fixed my-4'>
+				<Sheet>
+					<SheetTrigger asChild className='ml-2'>
+						<Button variant='ghost' className='mt-[2px]'>
+							<Menu />
+						</Button>
+					</SheetTrigger>
+					<SheetContent side='left' className='p-0 w-fit h-full'>
+						{SidebarSection}
+					</SheetContent>
+				</Sheet>
+			</div>
+			<div className='md:block hidden h-full'>{SidebarSection}</div>
 		</div>
 	);
 };
