@@ -1,10 +1,10 @@
 'use client';
 import { cn } from '@/lib/utils';
 import { usePathname, useRouter } from 'next/navigation';
+import React, { useRef, useState } from 'react';
 import Loader from '../loader';
 import FolderDuotone from '@/components/icons/folder-duotone';
-import { useRef, useState } from 'react';
-import { useMutationData } from '@/hooks/useMutationData';
+import { useMutationData, useMutationDataState } from '@/hooks/useMutationData';
 import { renameFolders } from '@/actions/workspace';
 import { Input } from '@/components/ui/input';
 
@@ -15,10 +15,9 @@ type Props = {
 	count?: number;
 };
 
-const Folder = ({ name, id, optimistic, count }: Props) => {
-	const inputRef = useRef<HTMLInputElement>(null);
-	const folderCradRef = useRef<HTMLDivElement>(null);
-
+const Folder = ({ id, name, optimistic, count }: Props) => {
+	const inputRef = useRef<HTMLInputElement | null>(null);
+	const folderCardRef = useRef<HTMLDivElement | null>(null);
 	const pathName = usePathname();
 	const router = useRouter();
 	const [onRename, setOnRename] = useState(false);
@@ -26,28 +25,29 @@ const Folder = ({ name, id, optimistic, count }: Props) => {
 	const Rename = () => setOnRename(true);
 	const Renamed = () => setOnRename(false);
 
-	//WIP: add loading state
-
-	// Optimistic
+	//optimistic
 	const { mutate, isPending } = useMutationData(
 		['rename-folders'],
-		(data: { name: string }) => renameFolders(id, name),
+		(data: { name: string }) => renameFolders(id, data.name),
 		'workspace-folders',
 		Renamed
 	);
 
-    const handleFolderClick = () => {
-        if (onRename) return;
+	const { latestVariables } = useMutationDataState(['rename-folders']);
+
+	const handleFolderClick = () => {
+		if (onRename) return;
 		router.push(`${pathName}/folder/${id}`);
 	};
 
 	const handleNameDoubleClick = (e: React.MouseEvent<HTMLParagraphElement>) => {
 		e.stopPropagation();
 		Rename();
+		//Rename functionality
 	};
 
 	const updateFolderName = (e: React.FocusEvent<HTMLInputElement>) => {
-		if (inputRef.current && folderCradRef.current) {
+		if (inputRef.current) {
 			if (inputRef.current.value) {
 				mutate({ name: inputRef.current.value, id });
 			} else Renamed();
@@ -57,12 +57,13 @@ const Folder = ({ name, id, optimistic, count }: Props) => {
 	return (
 		<div
 			onClick={handleFolderClick}
-			ref={folderCradRef}
+			ref={folderCardRef}
 			className={cn(
-				'flex hover:bg-neutral-800 cursor-pointer transition duration-150 items-center gap-2 justify-between min-w-[250px] py-4 px-4 rounded-lg border-[1px]'
+				optimistic && 'opacity-60',
+				'flex hover:bg-neutral-800 cursor-pointer transition duration-150 items-center gap-2 justify-between min-w-[250px] py-4 px-4 rounded-lg  border-[1px]'
 			)}
 		>
-			<Loader state={false}>
+			<Loader state={isPending}>
 				<div className='flex flex-col gap-[1px]'>
 					{onRename ? (
 						<Input
@@ -77,14 +78,17 @@ const Folder = ({ name, id, optimistic, count }: Props) => {
 					) : (
 						<p
 							onClick={(e) => e.stopPropagation()}
-							onDoubleClick={handleNameDoubleClick}
 							className='text-neutral-300'
+							onDoubleClick={handleNameDoubleClick}
 						>
-							{name}
+							{latestVariables &&
+							latestVariables.status === 'pending' &&
+							latestVariables.variables.id === id
+								? latestVariables.variables.name
+								: name}
 						</p>
 					)}
-
-					<span className='text-sm text-neutral-500 '>{count || 0} videos</span>
+					<span className='text-sm text-neutral-500'>{count || 0} videos</span>
 				</div>
 			</Loader>
 			<FolderDuotone />
