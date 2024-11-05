@@ -1,7 +1,7 @@
 import { useCreateWorkspace } from '@/hooks/useCreateWorkspace';
-import FormGenerator from '../../form-generator';
+import FormGenerator from '../../global/form-generator';
 import { Button } from '@/components/ui/button';
-import Loader from '../../loader';
+import Loader from '../../global/loader';
 
 const WorkspaceForm = () => {
 	const { errors, isPending, onFormSubmit, register } = useCreateWorkspace();
