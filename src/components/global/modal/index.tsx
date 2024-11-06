@@ -12,13 +12,13 @@ type Props = {
 	children: React.ReactNode;
 	title: string;
 	description: string;
-	clssName?: string;
+	className?: string;
 };
 
-const Modal = ({ trigger, children, title, description, clssName }: Props) => {
+const Modal = ({ trigger, children, title, description, className }: Props) => {
 	return (
 		<Dialog>
-			<DialogTrigger className={clssName} asChild>
+			<DialogTrigger className={className} asChild>
 				{trigger}
 			</DialogTrigger>
 			<DialogContent>

@@ -1,4 +1,3 @@
-
 import { getAllUserVideos, getFolderInfo } from '@/actions/workspace';
 import FolderInfo from '@/components/global/folders/folder-info';
 import Videos from '@/components/global/videos';
@@ -34,8 +33,8 @@ const Page = async ({ params: { folderId, workspaceId } }: Props) => {
 				<FolderInfo folderId={folderId} />
 				<Videos
 					folderId={folderId}
-					videosKey='folder-videos'
 					workspaceId={workspaceId}
+					videoKey='folder-videos'
 				/>
 			</>
 		</HydrationBoundary>

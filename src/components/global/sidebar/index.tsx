@@ -10,8 +10,8 @@ import {
 	SelectValue,
 } from '@/components/ui/select';
 import { Separator } from '@/components/ui/separator';
-import { useQueryData } from '@/hooks/useQueryData';
-import { WorkspaceProps, NotificationProps } from '@/types/index.type';
+
+import { NotificationProps, WorkspaceProps } from '@/types/index.type';
 import Image from 'next/image';
 import { usePathname, useRouter } from 'next/navigation';
 import React from 'react';
@@ -21,13 +21,16 @@ import Search from '../search';
 import { MENU_ITEMS } from '@/constants';
 import SidebarItem from './sidebar-item';
 import { getNotifications } from '@/actions/user';
+import { useQueryData } from '@/hooks/useQueryData';
 import WorkspacePlaceholder from './workspace-placeholder';
 import GlobalCard from '../global-card';
 import { Button } from '@/components/ui/button';
 import Loader from '../loader';
 import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
 import InfoBar from '../info-bar';
-
+import { useDispatch } from 'react-redux';
+import { WORKSPACES } from '@/redux/slices/workspaces';
+import PaymentButton from '../payment-button';
 type Props = {
 	activeWorkspaceId: string;
 };
@@ -35,7 +38,11 @@ type Props = {
 const Sidebar = ({ activeWorkspaceId }: Props) => {
 	const router = useRouter();
 	const pathName = usePathname();
+	const dispatch = useDispatch();
+
 	const { data, isFetched } = useQueryData(['user-workspaces'], getWorkSpaces);
+	const menuItems = MENU_ITEMS(activeWorkspaceId);
+
 	const { data: notifications } = useQueryData(
 		['user-notifications'],
 		getNotifications
@@ -44,15 +51,16 @@ const Sidebar = ({ activeWorkspaceId }: Props) => {
 	const { data: workspace } = data as WorkspaceProps;
 	const { data: count } = notifications as NotificationProps;
 
-	const menuItems = MENU_ITEMS(activeWorkspaceId);
-
 	const onChangeActiveWorkspace = (value: string) => {
 		router.push(`/dashboard/${value}`);
 	};
-
 	const currentWorkspace = workspace.workspace.find(
-		(workspace) => workspace.id === activeWorkspaceId
+		(s) => s.id === activeWorkspaceId
 	);
+
+	if (isFetched && workspace) {
+		dispatch(WORKSPACES({ workspaces: workspace.workspace }));
+	}
 
 	const SidebarSection = (
 		<div className='bg-[#111111] flex-none relative p-4 h-full w-[250px] flex flex-col gap-4 items-center overflow-hidden'>
@@ -60,7 +68,6 @@ const Sidebar = ({ activeWorkspaceId }: Props) => {
 				<Image src='/opal-logo.svg' height={40} width={40} alt='logo' />
 				<p className='text-2xl'>Opal</p>
 			</div>
-
 			<Select
 				defaultValue={activeWorkspaceId}
 				onValueChange={onChangeActiveWorkspace}
@@ -96,17 +103,17 @@ const Sidebar = ({ activeWorkspaceId }: Props) => {
 				workspace.subscription?.plan == 'PRO' && (
 					<Modal
 						trigger={
-							<span className='text-sm cursor-pointer flex items-center justify-center bg-neutral-800/70 hover:bg-neutral-800/60 w-full rounded-sm p-[5px] gap-2'>
+							<span className='text-sm cursor-pointer flex items-center justify-center bg-neutral-800/90  hover:bg-neutral-800/60 w-full rounded-sm p-[5px] gap-2'>
 								<PlusCircle
 									size={15}
 									className='text-neutral-800/90 fill-neutral-500'
 								/>
 								<span className='text-neutral-400 font-semibold text-xs'>
-									Invite to Workspace
+									Invite To Workspace
 								</span>
 							</span>
 						}
-						title='Invite to Workspace'
+						title='Invite To Workspace'
 						description='Invite other users to your workspace'
 					>
 						<Search workspaceId={activeWorkspaceId} />
@@ -133,23 +140,24 @@ const Sidebar = ({ activeWorkspaceId }: Props) => {
 				</ul>
 			</nav>
 			<Separator className='w-4/5' />
-			<p className='w-full text-[#9D9D9D] font-bold mt-4'>Workspaces</p>
+			<p className='w-full text-[#9D9D9D] font-bold mt-4 '>Workspaces</p>
+
 			{workspace.workspace.length === 1 && workspace.members.length === 0 && (
-				<div className='w-full mt-[-10px] '>
-					<p className='text-[#646161] font-medium text-sm'>
+				<div className='w-full mt-[-10px]'>
+					<p className='text-[#3c3c3c] font-medium text-sm'>
 						{workspace.subscription?.plan === 'FREE'
-							? ' Upgrade to Pro plan to create more workspaces'
-							: 'No workspace found'}
+							? 'Upgrade to create workspaces'
+							: 'No Workspaces'}
 					</p>
 				</div>
 			)}
+
 			<nav className='w-full'>
-				<ul className='h-[150px] overflow-auto overflow-x-hidden fade-layer'>
-					{/* Render personal workspace */}
-					{workspace.workspace.length > 1 &&
+				<ul className='h-[150px] overflow-auto overflow-x-hidden '>
+					{workspace.workspace.length > 0 &&
 						workspace.workspace.map(
 							(item) =>
-								item.type === 'PERSONAL' && (
+								item.type !== 'PERSONAL' && (
 									<SidebarItem
 										href={`/dashboard/${item.id}`}
 										selected={pathName === `/dashboard/${item.id}`}
@@ -164,7 +172,6 @@ const Sidebar = ({ activeWorkspaceId }: Props) => {
 									/>
 								)
 						)}
-					{/* Render others workspace */}
 					{workspace.members.length > 0 &&
 						workspace.members.map((item) => (
 							<SidebarItem
@@ -187,31 +194,22 @@ const Sidebar = ({ activeWorkspaceId }: Props) => {
 				<GlobalCard
 					title='Upgrade to Pro'
 					description=' Unlock AI features like transcription, AI summary, and more.'
-					footer={
-						<Button className='text-sm w-full'>
-							<Loader color='#000' state={false}>
-								Upgrade
-							</Loader>
-						</Button>
-					}
+					footer={<PaymentButton />}
 				/>
 			)}
 		</div>
 	);
-
 	return (
 		<div className='full'>
-			{/* INFOBAR  */}
 			<InfoBar />
-			{/* SHEET  */}
 			<div className='md:hidden fixed my-4'>
 				<Sheet>
 					<SheetTrigger asChild className='ml-2'>
-						<Button variant='ghost' className='mt-[2px]'>
+						<Button variant={'ghost'} className='mt-[2px]'>
 							<Menu />
 						</Button>
 					</SheetTrigger>
-					<SheetContent side='left' className='p-0 w-fit h-full'>
+					<SheetContent side={'left'} className='p-0 w-fit h-full'>
 						{SidebarSection}
 					</SheetContent>
 				</Sheet>

@@ -1,12 +1,12 @@
-'use client';
-
-import { Move } from 'lucide-react';
+import React from 'react';
 import Modal from '../modal';
+import { Button } from '@/components/ui/button';
+import { Move } from 'lucide-react';
 import ChangeVideoLocation from '@/components/forms/change-video-location';
 
 type Props = {
 	videoId: string;
-	currentWorkspace?: string;
+	currentWorkspaceId?: string;
 	currentFolder?: string;
 	currentFolderName?: string;
 };
@@ -15,20 +15,21 @@ const CardMenu = ({
 	videoId,
 	currentFolder,
 	currentFolderName,
-	currentWorkspace,
+	currentWorkspaceId,
 }: Props) => {
 	return (
 		<Modal
-			clssName='flex items-center cursor-pointer gap-x-2'
-			description='Lorem, ipsum dolor sit amet consectetur adipisicing elit. Vero nemo minima eveniet delectus, ipsa temporibus.'
-			title='Move to new workspace or folder'
-			trigger={<Move className='text-[#a4a4a4]' size={20} fill='#a4a4a4' />}
+			className='flex items-center cursor-pointer gap-x-2'
+			title='Move to new Workspace/Folder'
+			description='This action cannot be undone. This will permanently delete your
+  account and remove your data from our servers.'
+			trigger={<Move size={20} fill='#4f4f4f' className='text-[#4f4f4f]' />}
 		>
 			<ChangeVideoLocation
-				// videoId={videoId}
-				// currentFolder={currentFolder}
-				// currentFolderName={currentFolderName}
-				// currentWorkspace={currentWorkspace}
+				videoId={videoId}
+				currentFolder={currentFolder}
+				currentFolderName={currentFolderName}
+				currentWorkspaceId={currentWorkspaceId}
 			/>
 		</Modal>
 	);
