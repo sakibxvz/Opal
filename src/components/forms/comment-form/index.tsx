@@ -21,6 +21,11 @@ const CommentForm = ({ author, videoId, close, commentId }: Props) => {
 
 	return (
 		<form className='relative w-full' onSubmit={onFormSubmit}>
+			<X
+				onClick={close}
+				size={18}
+				className='absolute right-3 top-3 text-white/50 cursor-pointer hover:text-/80'
+			/>
 			<FormGenerator
 				register={register}
 				errors={errors}
