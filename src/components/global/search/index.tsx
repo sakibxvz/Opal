@@ -7,6 +7,7 @@ import { useSearch } from '@/hooks/useSearch';
 import { useQueryClient } from '@tanstack/react-query';
 import { User } from 'lucide-react';
 import Loader from '../loader';
+import { inviteMembers } from '@/actions/user';
 
 type Props = {
 	workspaceId: string;
@@ -18,7 +19,11 @@ const Search = ({ workspaceId }: Props) => {
 		'USERS'
 	);
 	//TODO: Wire up sending invitations to users
-	// const { } = useMutationData(['invite-member'], (data: { receiverId: string; email:string})=>{}, 'get-users', ()=>{})
+	const { isPending, mutate } = useMutationData(
+		['invite-member'],
+		(data: { receiverId: string; email: string }) =>
+			inviteMembers(workspaceId, data.receiverId, data.email)
+	);
 
 	return (
 		<div className='flex flex-col gap-y-5'>
@@ -58,11 +63,13 @@ const Search = ({ workspaceId }: Props) => {
 							</div>
 							<div className='flex-1 flex justify-end items-center'>
 								<Button
-									onClick={() => {}}
+									onClick={() =>
+										mutate({ receiverId: user.id, email: user.email })
+									}
 									variant='default'
 									className='w-5/12 font-bold'
 								>
-									<Loader state={false} color='#000'>
+									<Loader state={isPending} color='#000'>
 										Invite
 									</Loader>
 								</Button>
